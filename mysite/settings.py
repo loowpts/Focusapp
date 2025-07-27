@@ -107,5 +107,5 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-LOGIN_REDIRECT_URL = 'users:task_list'  # или любой другой url name
+LOGIN_REDIRECT_URL = 'main:task_list'  # или любой другой url name
 LOGIN_URL = 'users:login'  # куда перекидывать если не авторизован

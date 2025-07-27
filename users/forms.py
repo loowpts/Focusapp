@@ -3,6 +3,9 @@ from django.contrib.auth.forms import UserCreationForm
 from .models import UserProfile
 from django import forms
 
+class CustomClearableFileInput(forms.ClearableFileInput):
+    template_name = 'users/custom_clearable_file_input.html'
+
 class RegisterForm(UserCreationForm):
     email = forms.EmailField(required=True)
 
@@ -14,13 +17,18 @@ class RegisterForm(UserCreationForm):
 class UserForm(forms.ModelForm):
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'email']
+        fields = ['username']
+
 
 
 class UserProfileForm(forms.ModelForm):
     class Meta:
         model = UserProfile
         fields = ['avatar']
+        widgets = {
+            'avatar': CustomClearableFileInput,
+        }
+
 
 
 

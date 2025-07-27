@@ -17,21 +17,32 @@
   <!-- Список задач -->
   <ul class="list-group">
     {% for task in tasks %}
-      <li class="list-group-item d-flex justify-content-between align-items-center">
-        <a href="{% url 'main:task_detail' task.pk %}">{{ task.title }}</a>
-        <div class="d-flex align-items-center">
-          <span class="badge bg-{{ task.get_status_color }} me-2">{{ task.get_status_display }}</span>
-          <span class="badge bg-{{ task.get_priority_color }} me-2">{{ task.get_priority_display }}</span>
+      <li class="list-group-item d-flex justify-content-between align-items-center
+                 {% if task.is_overdue %}list-group-item-danger{% endif %}">
+        <div>
+          <a href="{% url 'main:task_detail' task.pk %}">{{ task.title }}</a><br>
+          <small class="text-muted">
+            Срок:
+            {% if task.deadline %}
+            {{ task.deadline|date:"d.m.Y" }}
+            {% else %}
+            не указан
+            {% endif %}
+          </small>
+          {% if task.is_overdue %}
+            <span class="badge bg-danger ms-2">Просрочено</span>
+          {% endif %}
+        </div>
+
+        <div class="d-flex gap-2 align-items-center flex-wrap">
+          <span class="badge bg-{{ task.get_status_color }}">{{ task.get_status_display }}</span>
+          <span class="badge bg-{{ task.get_priority_color }}">{{ task.get_priority_display }}</span>
 
           {% if task.status != 'done' %}
-            <form method="post" action="{% url 'main:task_mark_done' task.pk %}" class="m-0 p-0">
+            <form method="post" action="{% url 'main:task_mark_done' task.pk %}">
               {% csrf_token %}
-              <button type="submit" class="badge bg-outline-success border border-success text-success" style="cursor: pointer; background-color: transparent;">
-                Выполнить
-              </button>
+              <button type="submit" class="btn btn-sm btn-outline-success">Выполнить</button>
             </form>
-          {% else %}
-            <span class="badge bg-success">Выполнено</span>
           {% endif %}
         </div>
       </li>
@@ -39,8 +50,6 @@
       <li class="list-group-item">Нет задач</li>
     {% endfor %}
   </ul>
-
-  <!-- Список задач закончился -->
 {% endblock %}
 
 {% block extrascript %}
@@ -57,9 +66,9 @@
           {% if task.due_date %}
             {
               title: "{{ task.title|escapejs }}",
-              start: "{{ task.due_date|date:'Y-m-d' }}",
+              start: "{{ task.due_date|date:'Y-m-d' }}"  →  start: "{{ task.deadline|date:'Y-m-d' }}",
               url: "{% url 'main:task_detail' task.pk %}",
-              color: "{% if task.status == 'done' %}#28a745{% elif task.priority == 'high' %}#dc3545{% elif task.priority == 'medium' %}#ffc107{% else %}#17a2b8{% endif %}"
+              color: "{% if task.status == 'done' %}#28a745{% elif task.is_overdue %}#dc3545{% elif task.priority == 'high' %}#fd7e14{% elif task.priority == 'medium' %}#ffc107{% else %}#17a2b8{% endif %}"
             },
           {% endif %}
         {% endfor %}

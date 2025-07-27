@@ -2,7 +2,14 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login
 from .forms import UserForm, UserProfileForm, RegisterForm
+from django.contrib import messages
+from django.utils.timezone import now as timezone_now
 from .models import UserProfile
+from main.models import Task
+from django.utils import timezone
+from django.db.models import Q
+from django.db.models import F
+from django.db.models.functions import TruncDate
 
 
 def register(request):
@@ -11,7 +18,7 @@ def register(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-            return redirect('users:task_list')
+            return redirect('main:task_list')
     else:
         form = RegisterForm()
     return render(request, 'users/register.html', {'form': form})
@@ -22,13 +29,43 @@ def profile(request):
     user = request.user
     profile, created = UserProfile.objects.get_or_create(user=user)
 
+    tasks = Task.objects.filter(user=user)
+    now = timezone.now()
+
+    total_tasks = tasks.count()
+
+    # ✅ Выполнено в срок: статус 'done', дедлайн есть, и дата выполнения <= дате дедлайна
+    done_on_time = tasks.annotate(
+        deadline_date=TruncDate('deadline'),
+        done_date=TruncDate('updated_at')
+    ).filter(
+        status='done',
+        deadline__isnull=False,
+        done_date__lte=F('deadline_date')
+    ).count()
+
+    # ✅ Просроченные: 
+    # 1) выполнены позже дедлайна, или 
+    # 2) всё ещё не выполнены и срок прошёл
+    overdue_tasks = tasks.annotate(
+        deadline_date=TruncDate('deadline'),
+        done_date=TruncDate('updated_at')
+    ).filter(
+        (
+            Q(status='done', done_date__gt=F('deadline_date')) |  # выполнена с опозданием
+            Q(status__in=['new', 'in_progress'], deadline__lt=timezone_now())  # ещё не выполнена, но срок прошёл
+        ),
+        deadline__isnull=False  # только если установлен дедлайн
+    ).count()
+
     if request.method == 'POST':
         user_form = UserForm(request.POST, instance=user)
         profile_form = UserProfileForm(request.POST, request.FILES, instance=profile)
         if user_form.is_valid() and profile_form.is_valid():
             user_form.save()
             profile_form.save()
-            return redirect('profile')
+            messages.success(request, 'Профиль успешно сохранён!')
+            return redirect('users:profile')
     else:
         user_form = UserForm(instance=user)
         profile_form = UserProfileForm(instance=profile)
@@ -38,6 +75,11 @@ def profile(request):
         'profile_form': profile_form,
         'date_joined': user.date_joined,
         'last_login': user.last_login,
+        'total_tasks': total_tasks,
+        'done_on_time': done_on_time,
+        'overdue_tasks': overdue_tasks,
+        'now': timezone_now(),
     }
-    return render(request, 'users/profile.html', {'context': context})
+    return render(request, 'users/profile.html', context)
+
 

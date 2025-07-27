@@ -2,14 +2,17 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.template.response import TemplateResponse
 from django.http import HttpResponse
+from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from django.conf import settings
 from .forms import TaskForm, TaskUpdateForm
 from .models import Task
+from django.contrib import messages
+
 
 @login_required
 def task_list(request):
-    tasks = Task.objects.filter(user=request.user)
+    tasks = Task.objects.filter(user=request.user, is_deleted=False).order_by('deadline')
     return render(request, 'main/task_list.html', {'tasks': tasks})
 
 
@@ -32,6 +35,7 @@ def task_create(request):
         form = TaskForm()
     return render(request, 'main/task_form.html', {'form': form})
 
+
 @login_required
 def task_update(request, pk):
     task = get_object_or_404(Task, pk=pk, user=request.user)
@@ -40,17 +44,20 @@ def task_update(request, pk):
         form = TaskUpdateForm(request.POST, instance=task)
         if form.is_valid():
             form.save()
+            messages.success(request, 'Задача успешно добавлена!')
             return redirect('main:task_list')
     else:
         form = TaskUpdateForm(instance=task)
     return render(request, 'main/task_form.html', {'form': form})
+
 
 @login_required
 def task_delete(request, pk):
     task = get_object_or_404(Task, pk=pk, user=request.user)
 
     if request.method == 'POST':
-        task.delete()
+        task.is_deleted = True
+        task.save()
         return redirect('main:task_list')
     return render(request, 'main/task_delete.html', {'task': task})
 
@@ -62,3 +69,16 @@ def mark_task_done(request, pk):
         task.status = 'done'
         task.save()
     return redirect('main:task_list')
+
+
+@login_required
+def calendar(request):
+    if request.method == 'POST':
+        form = TaskForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Задача успешно добавлена!')
+            return redirect('main:calendar')
+    else:
+        form = TaskForm()
+    return render(request, 'main/calendar.html', {'form': form})

@@ -1,27 +1,88 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-md-6">
-    <h2>Профиль пользователя</h2>
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
 
-    <div class="text-center mb-4">
-      {% if user.profile.avatar %}
-        <img src="{{ user.profile.avatar.url }}" class="rounded-circle" alt="Аватар" width="150" height="150" />
-      {% else %}
-        <img src="https://via.placeholder.com/150" class="rounded-circle" alt="Аватар по умолчанию" />
+      <h2 class="mb-4 text-center">Профиль пользователя</h2>
+
+      <!-- Сообщения -->
+      {% if messages %}
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Закрыть"></button>
+          </div>
+        {% endfor %}
       {% endif %}
+
+      <div class="card mb-4 shadow-sm">
+        <div class="card-body d-flex flex-column align-items-center text-center">
+
+          <!-- Аватар -->
+          <div class="text-center mb-4">
+            {% if user.profile.avatar %}
+              <img src="{{ user.profile.avatar.url }}" class="rounded-circle" alt="Аватар" width="150" height="150" />
+            {% else %}
+              <img src="https://via.placeholder.com/150" class="rounded-circle" alt="Аватар по умолчанию" />
+            {% endif %}
+          </div>
+
+          <!-- Имя и email -->
+          <h4>{{ user.username }}</h4>
+          <p class="text-muted mb-1">{{ user.email }}</p>
+
+          <p class="mb-0">
+            <small>Дата регистрации: {{ date_joined|date:"d.m.Y H:i" }}</small><br>
+            <small>Последний вход: {{ last_login|date:"d.m.Y H:i" }}</small>
+          </p>
+        </div>
+      </div>
+
+      <!-- Форма редактирования имени и аватара -->
+      <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+          <h5 class="mb-3">Редактировать профиль</h5>
+          <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ user_form.as_p }}
+            {{ profile_form.as_p }}
+            <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Статистика задач -->
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="mb-3">Статистика задач</h5>
+          <div class="row text-center">
+            <div class="col-4 border-end">
+              <h3>{{ total_tasks }}</h3>
+              <p>Всего создано</p>
+            </div>
+            <div class="col-4 border-end">
+              <h3>{{ done_on_time }}</h3>
+              <p>Выполнено в срок</p>
+            </div>
+            <div class="col-4">
+              <h3>{{ overdue_tasks }}</h3>
+              <p>Просрочено</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
-
-    <p><strong>Имя пользователя:</strong> {{ user.username }}</p>
-    <p><strong>Дата регистрации:</strong> {{ date_joined|date:"d.m.Y H:i" }}</p>
-    <p><strong>Последний вход:</strong> {{ last_login|date:"d.m.Y H:i" }}</p>
-
-    <form method="post" enctype="multipart/form-data">
-      {% csrf_token %}
-      {{ user_form.as_p }}
-      {{ profile_form.as_p }}
-      <button type="submit" class="btn btn-primary">Сохранить изменения</button>
-    </form>
   </div>
 </div>
+
+<!-- Футер -->
+<footer class="bg-light mt-5 py-4">
+  <div class="container d-flex justify-content-between">
+    <div>© {{ now.year }} Мой проект</div>
+    <div>Связаться с нами</div>
+    <div>Политика конфиденциальности</div>
+  </div>
+</footer>
 {% endblock %}

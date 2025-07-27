@@ -16,11 +16,12 @@ class Task(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     title = models.CharField(max_length=100)
     description = models.TextField()
-    due_date = models.DateField(null=True, blank=True)
-    deadline = models.DateField(default=timezone.now)
+    deadline = models.DateField(default=timezone.localdate)
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='todo')
     priority = models.CharField(max_length=50, choices=STATUS_PRIORITY, default='medium')
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    is_deleted = models.BooleanField(default=False)
 
     def get_priority_color(self):
         return {
@@ -44,4 +45,9 @@ class Task(models.Model):
     def __str__(self) -> str:
         return f'{self.title} ({self.user.username})'
 
+    @property
+    def is_overdue(self):
+        if self.status == 'done' or not self.deadline:
+            return False
+        return self.deadline < timezone.localdate()
 

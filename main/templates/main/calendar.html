@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h2>Календарь задач</h2>
+  <div id="calendar"></div>
+
+  <!-- Модалка для создания задачи -->
+  <div class="modal fade" id="taskModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <form id="taskForm" class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Создать задачу</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" name="date" id="taskDate">
+          <div class="mb-3">
+            <label for="title" class="form-label">Заголовок</label>
+            <input type="text" class="form-control" name="title" required>
+          </div>
+          <div class="mb-3">
+            <label for="description" class="form-label">Описание</label>
+            <textarea class="form-control" name="description"></textarea>
+          </div>
+          <div class="mb-3">
+            <label for="priority" class="form-label">Приоритет</label>
+            <select name="priority" class="form-select">
+              <option value="low">Низкий</option>
+              <option value="medium">Средний</option>
+              <option value="high">Высокий</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">Создать</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const calendarEl = document.getElementById('calendar');
+
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+      initialView: 'dayGridMonth',
+      locale: 'ru',
+      selectable: true,
+
+      dateClick: function(info) {
+        document.getElementById('taskDate').value = info.dateStr;
+        const modal = new bootstrap.Modal(document.getElementById('taskModal'));
+        modal.show();
+      },
+
+      events: function(fetchInfo, successCallback, failureCallback) {
+        // Форматируем даты в YYYY-MM-DD (без времени)
+        const startDate = fetchInfo.startStr.split('T')[0];
+        const endDate = fetchInfo.endStr.split('T')[0];
+        const url = `/api/tasks/?start=${startDate}&end=${endDate}`;
+
+        fetch(url)
+          .then(response => response.json())
+          .then(data => {
+            const events = data.map(task => {
+              let color = '#17a2b8'; // default (blue-ish)
+
+              if (task.status === 'done') {
+                color = '#28a745'; // green
+              } else if (task.overdue) {
+                color = '#dc3545'; // red
+              } else if (task.priority === 'high') {
+                color = '#fd7e14'; // orange
+              } else if (task.priority === 'medium') {
+                color = '#ffc107'; // yellow
+              }
+
+              return {
+                title: task.title,
+                start: task.start,  // <-- важно! совпадает с ключом в API
+                url: task.url,
+                color: color
+              };
+            });
+            successCallback(events);
+          })
+          .catch(error => {
+            console.error('Ошибка загрузки задач:', error);
+            failureCallback(error);
+          });
+      }
+    });
+
+    calendar.render();
+
+    // Обработка формы
+    document.getElementById('taskForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const form = e.target;
+      const data = new FormData(form);
+
+      fetch('/api/tasks/create/', {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': '{{ csrf_token }}',
+        },
+        body: data,
+      })
+      .then(res => res.json())
+      .then(result => {
+        if (result.success) {
+          calendar.refetchEvents();
+          bootstrap.Modal.getInstance(document.getElementById('taskModal')).hide();
+          form.reset();
+        } else {
+          alert('Ошибка: ' + result.message);
+        }
+      });
+    });
+  });
+</script>
+{% endblock %}

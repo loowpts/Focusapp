@@ -4,8 +4,9 @@ from django.utils import timezone
 
 class Task(models.Model):
     STATUS_CHOICES = (
-        ('in_progress', 'In progress'),
-        ('done', 'Done'),
+        ('todo', 'Ожидает'),
+        ('in_progress', 'В процессе'),
+        ('done', 'Выполнено'),
     )
     STATUS_PRIORITY = (
         ('low', 'Низкий'),
@@ -15,8 +16,9 @@ class Task(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     title = models.CharField(max_length=100)
     description = models.TextField()
+    due_date = models.DateField(null=True, blank=True)
     deadline = models.DateField(default=timezone.now)
-    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='done')
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='todo')
     priority = models.CharField(max_length=50, choices=STATUS_PRIORITY, default='medium')
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -26,6 +28,13 @@ class Task(models.Model):
             'medium': 'warning',
             'high': 'danger',
         }.get(self.priority, 'secondary')
+    
+    def get_status_color(self):
+        return {
+            'todo': 'secondary',
+            'in_progress': 'primary',
+            'done': 'success',
+        }.get(self.status, 'light')
 
     class Meta:
         ordering = ['-created_at']

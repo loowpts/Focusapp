@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <h2>Профиль пользователя</h2>
+
+    <div class="text-center mb-4">
+      {% if user.profile.avatar %}
+        <img src="{{ user.profile.avatar.url }}" class="rounded-circle" alt="Аватар" width="150" height="150" />
+      {% else %}
+        <img src="https://via.placeholder.com/150" class="rounded-circle" alt="Аватар по умолчанию" />
+      {% endif %}
+    </div>
+
+    <p><strong>Имя пользователя:</strong> {{ user.username }}</p>
+    <p><strong>Дата регистрации:</strong> {{ date_joined|date:"d.m.Y H:i" }}</p>
+    <p><strong>Последний вход:</strong> {{ last_login|date:"d.m.Y H:i" }}</p>
+
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      {{ user_form.as_p }}
+      {{ profile_form.as_p }}
+      <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

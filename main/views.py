@@ -53,3 +53,12 @@ def task_delete(request, pk):
         task.delete()
         return redirect('main:task_list')
     return render(request, 'main/task_delete.html', {'task': task})
+
+
+@login_required
+def mark_task_done(request, pk):
+    if request.method == 'POST':
+        task = get_object_or_404(Task, pk=pk)
+        task.status = 'done'
+        task.save()
+    return redirect('main:task_list')

@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h2>{% if form.instance.pk %}Редактировать{% else %}Создать{% endif %} задачу</h2>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-success">Сохранить</button>
+    <a href="{% url 'main:task_list' %}" class="btn btn-secondary">Отмена</a>
+  </form>
+{% endblock %}

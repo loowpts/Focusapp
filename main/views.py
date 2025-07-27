@@ -7,17 +7,19 @@ from django.conf import settings
 from .forms import TaskForm, TaskUpdateForm
 from .models import Task
 
-
+@login_required
 def task_list(request):
-    task = Task.objects.filter(user=request.user)
-    return render(request, 'main/task_list.html', {'task': task})
+    tasks = Task.objects.filter(user=request.user)
+    return render(request, 'main/task_list.html', {'tasks': tasks})
 
 
+@login_required
 def task_detail(request, pk):
     task = get_object_or_404(Task, pk=pk, user=request.user)
     return render(request, 'main/task_detail.html', {'task': task})
 
 
+@login_required
 def task_create(request):
     if request.method == 'POST':
         form = TaskForm(request.POST)
@@ -30,10 +32,10 @@ def task_create(request):
         form = TaskForm()
     return render(request, 'main/task_form.html', {'form': form})
 
-
+@login_required
 def task_update(request, pk):
     task = get_object_or_404(Task, pk=pk, user=request.user)
-    
+
     if request.method == 'POST':
         form = TaskUpdateForm(request.POST, instance=task)
         if form.is_valid():
@@ -43,9 +45,9 @@ def task_update(request, pk):
         form = TaskUpdateForm(instance=task)
     return render(request, 'main/task_form.html', {'form': form})
 
-
+@login_required
 def task_delete(request, pk):
-    task = get_object_or_404(Task, pk=pk)
+    task = get_object_or_404(Task, pk=pk, user=request.user)
 
     if request.method == 'POST':
         task.delete()

@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h2>{{ task.title }}</h2>
+  <p><strong>Описание:</strong> {{ task.description }}</p>
+  <p><strong>Статус:</strong> {{ task.get_status_display }}</p>
+  <p><strong>Приоритет:</strong> {{ task.get_priority_display }}</p>
+  <p><strong>Дедлайн:</strong> {{ task.deadline }}</p>
+
+  <a href="{% url 'main:task_update' task.pk %}" class="btn btn-primary">Редактировать</a>
+  <a href="{% url 'main:task_delete' task.pk %}" class="btn btn-danger">Удалить</a>
+  <a href="{% url 'main:task_list' %}" class="btn btn-secondary">Назад</a>
+{% endblock %}

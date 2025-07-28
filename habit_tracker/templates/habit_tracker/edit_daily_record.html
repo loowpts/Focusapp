@@ -1,8 +1,32 @@
-{% extends "base.html" %} {% block content %}
-<h1>Редактировать запись</h1>
-<form method="post">
-  {% csrf_token %} {{ form.as_p }}
-  <button type="submit">Сохранить</button>
-</form>
-<a href="{% url 'habit_tracker:daily_habits' %}">Назад</a>
+{% extends 'base.html' %}
+{% block title %}Редактировать запись{% endblock %}
+{% block content %}
+
+<h2>Редактировать запись</h2>
+
+<div class="form-container">
+  <form method="post">
+    {% csrf_token %}
+    {% if form.errors %}
+      <ul class="errorlist">
+        {% for error in form.non_field_errors %}
+          <li>{{ error }}</li>
+        {% endfor %}
+        {% for field in form %}
+          {% for error in field.errors %}
+            <li>{{ error }}</li>
+          {% endfor %}
+        {% endfor %}
+      </ul>
+    {% endif %}
+    <div class="form-group">
+      <label for="{{ form.goal_status.id_for_label }}">Статус цели</label>
+      {{ form.goal_status }}
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-save">Сохранить</button>
+      <a href="{% url 'habit_tracker:daily_record' record.habit.pk %}" class="btn btn-cancel">Отмена</a>
+    </div>
+  </form>
+</div>
 {% endblock %}

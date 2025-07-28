@@ -1,6 +1,312 @@
 {% extends 'base.html' %}
 {% block title %}Профиль{% endblock %}
 {% block content %}
+<style>
+  :root {
+    --primary-color: #5a6f9e; /* Muted indigo */
+    --accent-color: #e2c9d7; /* Pastel pink */
+    --success-color: #7dd3b0; /* Gentle green */
+    --error-color: #f4a1a1; /* Subdued red */
+    --background-color: #fafafa; /* Notion-like background */
+    --border-color: #e7e7e7; /* Subtle border */
+    --shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
+    --text-color: #2d3748; /* Dark gray */
+    --muted-color: #7f8c9b; /* Softer gray */
+  }
+
+  h2 {
+    font-size: 1.875rem;
+    font-weight: 500;
+    color: var(--text-color);
+    margin-bottom: 2.5rem;
+    letter-spacing: -0.02rem;
+    text-align: center;
+  }
+
+  .profile-container {
+    max-width: 900px; /* Reduced for better edge control */
+    margin: 0 auto;
+    padding: 1.5rem;
+    box-sizing: border-box;
+  }
+
+  .profile-header {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
+    border-radius: 1rem;
+    padding: 3rem 1.5rem;
+    box-shadow: var(--shadow);
+    text-align: center;
+    margin-bottom: 3rem;
+    box-sizing: border-box;
+    position: relative;
+    overflow: hidden; /* Prevent gradient overflow */
+  }
+
+  .profile-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #ffffff;
+    box-shadow: var(--shadow);
+    margin-bottom: 1rem;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .profile-avatar.placeholder {
+    background: var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: var(--muted-color);
+  }
+
+  .profile-info {
+    color: #ffffff;
+  }
+
+  .profile-info h3 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+
+  .profile-info p {
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0.25rem 0;
+  }
+
+  .profile-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+    margin-bottom: 3rem;
+    box-sizing: border-box;
+  }
+
+  .stat-card {
+    background: #ffffff;
+    border-radius: 0.75rem;
+    padding: 1.25rem;
+    text-align: center;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border-color);
+    transition: transform 0.2s ease;
+  }
+
+  .stat-card:hover {
+    transform: scale(1.02);
+  }
+
+  .stat-card i {
+    font-size: 1.25rem;
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+  }
+
+  .stat-card label {
+    font-size: 0.85rem;
+    color: var(--muted-color);
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+
+  .stat-card span {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-color);
+  }
+
+  .form-container {
+    background: #ffffff;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border-color);
+    margin-bottom: 3rem;
+    box-sizing: border-box;
+  }
+
+  .form-group {
+    margin-bottom: 1.25rem;
+  }
+
+  .form-group label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-color);
+    margin-bottom: 0.5rem;
+  }
+
+  .form-group input {
+    width: 100%;
+    padding: 0.65rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--text-color);
+    background: #ffffff;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    box-sizing: border-box;
+  }
+
+  .form-group input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(90, 111, 158, 0.1);
+  }
+
+  .form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-start;
+    margin-top: 1.5rem;
+  }
+
+  .btn {
+    padding: 0.65rem 1.5rem;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease;
+  }
+
+  .btn-save {
+    background: var(--success-color);
+    color: #ffffff;
+  }
+
+  .btn-save:hover {
+    background: #68d3a0;
+    transform: translateY(-1px);
+  }
+
+  .btn-cancel {
+    background: var(--border-color);
+    color: var(--text-color);
+  }
+
+  .btn-cancel:hover {
+    background: #d1d5db;
+    transform: translateY(-1px);
+  }
+
+  .messages {
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+
+  .messages .success {
+    color: var(--success-color);
+    font-size: 0.9rem;
+    padding: 0.75rem;
+    background: rgba(125, 211, 176, 0.1);
+    border-radius: 0.5rem;
+    display: inline-block;
+  }
+
+  footer {
+    background: var(--background-color);
+    padding: 1.5rem 0;
+    margin-top: 3rem;
+    border-top: 1px solid var(--border-color);
+  }
+
+  footer .container {
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+    color: var(--muted-color);
+    box-sizing: border-box;
+  }
+
+  footer a {
+    color: var(--primary-color);
+    text-decoration: none;
+  }
+
+  footer a:hover {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 768px) {
+    .profile-container {
+      padding: 1rem;
+    }
+
+    .profile-header {
+      padding: 2rem 1rem;
+    }
+
+    .profile-avatar {
+      width: 80px;
+      height: 80px;
+      font-size: 1rem;
+    }
+
+    .profile-info h3 {
+      font-size: 1.5rem;
+    }
+
+    .profile-info p {
+      font-size: 0.85rem;
+    }
+
+    .profile-stats {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    .stat-card {
+      padding: 1rem;
+    }
+
+    .stat-card span {
+      font-size: 1.1rem;
+    }
+
+    .form-container {
+      padding: 1rem;
+    }
+
+    .form-group label {
+      font-size: 0.85rem;
+    }
+
+    .form-group input {
+      font-size: 0.85rem;
+      padding: 0.5rem 0.9rem;
+    }
+
+    .form-actions {
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .btn {
+      width: 100%;
+      text-align: center;
+    }
+
+    footer .container {
+      flex-direction: column;
+      gap: 0.75rem;
+      text-align: center;
+      padding: 0 1rem;
+    }
+  }
+</style>
 
 <h2>Профиль</h2>
 

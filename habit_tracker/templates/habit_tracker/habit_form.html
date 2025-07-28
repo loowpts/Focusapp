@@ -3,8 +3,8 @@
 
 {% block content %}
 <div class="form-container">
-  <h2>Редактировать привычку</h2>
-  <p class="form-instructions">Измените данные привычки для ежедневного отслеживания. Например, обновите цель "Пить воду" с 2 литров на 3 литра в день.</p>
+  <h2>Создать новую привычку</h2>
+  <p class="form-instructions">Заполните форму, чтобы добавить привычку для ежедневного отслеживания. Например, "Пить воду" с целью 2 литра в день.</p>
   
   <form method="post">
     {% csrf_token %}
@@ -60,7 +60,7 @@
     </div>
     
     <div class="form-actions">
-      <button type="submit" class="btn btn-save">Сохранить</button>
+      <button type="submit" class="btn btn-create">Создать</button>
       <a href="{% url 'habit_tracker:daily_habits' %}" class="btn btn-back">Назад</a>
     </div>
   </form>

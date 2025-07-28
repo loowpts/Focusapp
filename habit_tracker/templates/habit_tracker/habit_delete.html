@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block title %}Удалить привычку{% endblock %}
+{% block content %}
+
+<h2>Удалить привычку</h2>
+
+<div class="delete-container">
+  <div class="delete-message">
+    Вы уверены, что хотите удалить привычку <strong>{{ habit.habit }}</strong>?
+  </div>
+  <form method="post" action="{% url 'habit_tracker:habit_delete' habit.pk %}">
+    {% csrf_token %}
+    <div class="form-actions">
+      <button type="submit" class="btn btn-delete">Удалить</button>
+      <a href="{% url 'habit_tracker:habit_detail' habit.pk %}" class="btn btn-cancel">Отмена</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

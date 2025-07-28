@@ -1,21 +1,47 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% block content %}
-  <h1>Привычка: {{ habit.habit }}</h1>
-  <p>Цель: {{ habit.target_goal }} {{ habit.unit_of_measure }}</p>
-  <p>Создана: {{ habit.created_date }}</p>
-
-  <a href="{% url 'habit_tracker:habit_edit' habit.pk %}">Редактировать</a> |
-  <a href="{% url 'habit_tracker:habit_delete' habit.pk %}">Удалить</a>
-
-  <h2>Ежедневные записи</h2>
-  <ul>
-    {% for record in habit.habit_dailyrecords.all %}
-      <li>
-        {{ record.date_completed }} — {{ record.goal_status }} {{ habit.unit_of_measure }}
-        <a href="{% url 'habit_tracker:edit_daily_record' record.pk %}">Изменить</a>
-      </li>
-    {% empty %}
-      <li>Записей пока нет.</li>
-    {% endfor %}
-  </ul>
+<div class="habit-detail-container">
+  <h2 class="habit-title">{{ habit.title }}</h2>
+  <div class="habit-field">
+    <label>Описание</label>
+    <span>{{ habit.description|default:"Без описания" }}</span>
+  </div>
+  <div class="habit-field">
+    <label>Единица измерения</label>
+    <span>{{ habit.unit_of_measure|default:"Не указано" }}</span>
+  </div>
+  <div class="habit-field">
+    <label>Цель</label>
+    <span>{{ habit.target_goal|default:"Не указано" }} {{ habit.unit_of_measure }}</span>
+  </div>
+  <div class="habit-field">
+    <label>Дата создания</label>
+    <span>{{ habit.created_date|date:"d.m.Y" }}</span>
+  </div>
+  <div class="habit-field">
+    <label>Прогресс</label>
+    {% with latest_record=habit.habit_dailyrecords.last %}
+      {% if latest_record and habit.target_goal %}
+        {% with progress=latest_record.goal_status|floatformat:2|add:0 %}
+          <div class="progress-bar">
+            {% widthratio progress habit.target_goal 100 as progress_percentage %}
+            <div class="progress-fill" style="width: {{ progress_percentage|floatformat:0 }}%;"></div>
+          </div>
+          <span>{{ progress }} / {{ habit.target_goal }} {{ habit.unit_of_measure }}</span>
+        {% endwith %}
+      {% else %}
+        <span>Нет данных о прогрессе</span>
+      {% endif %}
+    {% endwith %}
+  </div>
+  <div class="habit-field">
+    <label>Записи</label>
+    <!-- Existing code for records -->
+  </div>
+  <div class="habit-actions">
+    <a href="{% url 'habit_tracker:habit_edit' habit.id %}" class="btn btn-edit">Редактировать</a>
+    <a href="{% url 'habit_tracker:habit_delete' habit.id %}" class="btn btn-delete">Удалить</a>
+    <a href="{% url 'habit_tracker:daily_habits' %}" class="btn btn-back">Назад</a>
+  </div>
+</div>
 {% endblock %}

@@ -1,5 +1,4 @@
 {% load i18n %}
-{% extends "base.html" %}
 <div class="file-input-container">
   <input type="file" name="{{ widget.name }}"{% if widget.value %} value="{{ widget.value }}"{% endif %}{% include "django/forms/widgets/attrs.html" %}>
   {% if widget.value %}

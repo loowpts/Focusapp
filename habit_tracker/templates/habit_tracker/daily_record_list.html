@@ -1,15 +1,34 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
+{% block title %}Записи привычки{% endblock %}
 {% block content %}
-  <h1>Все записи по привычкам</h1>
-  <ul>
-    {% for habit in habits %}
-      <li><strong>{{ habit.habit }}</strong>
-        <ul>
-          {% for record in habit.habit_dailyrecords.all %}
-            <li>{{ record.date_completed }} — {{ record.goal_status }} {{ habit.unit_of_measure }}</li>
-          {% endfor %}
-        </ul>
-      </li>
-    {% endfor %}
-  </ul>
+
+<h2>Записи привычки</h2>
+
+<div class="record-container">
+  {% if daily_records %}
+    <table class="record-table">
+      <thead>
+        <tr>
+          <th>Дата</th>
+          <th>Статус цели</th>
+          <th>Действия</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for record in daily_records %}
+          <tr>
+            <td>{{ record.date_completed|date:"d.m.Y" }}</td>
+            <td>{{ record.goal_status|default:"Не указано" }}</td>
+            <td>
+              <a href="{% url 'habit_tracker:edit_daily_record' record.pk %}" class="btn btn-edit">Редактировать</a>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p style="text-align: center; color: var(--muted-color);">Нет записей для этой привычки.</p>
+  {% endif %}
+  <a href="{% url 'habit_tracker:habit_detail' daily_records.0.habit.pk %}" class="btn-back">Назад</a>
+</div>
 {% endblock %}

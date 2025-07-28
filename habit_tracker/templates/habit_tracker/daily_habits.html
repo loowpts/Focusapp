@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>Мои привычки</h1>
+  <a href="{% url 'habit_tracker:habit_new' %}">Добавить привычку</a>
+  <ul>
+    {% for habit in habits %}
+      <li>
+        <a href="{% url 'habit_tracker:habit_detail' habit.pk %}">{{ habit.habit }}</a>
+        (Цель: {{ habit.target_goal }} {{ habit.unit_of_measure }})
+      </li>
+    {% empty %}
+      <li>Нет добавленных привычек.</li>
+    {% endfor %}
+  </ul>
+{% endblock %}

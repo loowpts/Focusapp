@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>Все записи по привычкам</h1>
+  <ul>
+    {% for habit in habits %}
+      <li><strong>{{ habit.habit }}</strong>
+        <ul>
+          {% for record in habit.habit_dailyrecords.all %}
+            <li>{{ record.date_completed }} — {{ record.goal_status }} {{ habit.unit_of_measure }}</li>
+          {% endfor %}
+        </ul>
+      </li>
+    {% endfor %}
+  </ul>
+{% endblock %}

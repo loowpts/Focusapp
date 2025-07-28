@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>{% if form.instance.pk %}Редактировать привычку{% else %}Создать новую привычку{% endif %}</h1>
+
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Сохранить</button>
+  </form>
+  <a href="{% url 'habit_tracker:daily_habits' %}">Назад</a>
+{% endblock %}

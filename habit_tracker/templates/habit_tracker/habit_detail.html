@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>Привычка: {{ habit.habit }}</h1>
+  <p>Цель: {{ habit.target_goal }} {{ habit.unit_of_measure }}</p>
+  <p>Создана: {{ habit.created_date }}</p>
+
+  <a href="{% url 'habit_tracker:habit_edit' habit.pk %}">Редактировать</a> |
+  <a href="{% url 'habit_tracker:habit_delete' habit.pk %}">Удалить</a>
+
+  <h2>Ежедневные записи</h2>
+  <ul>
+    {% for record in habit.habit_dailyrecords.all %}
+      <li>
+        {{ record.date_completed }} — {{ record.goal_status }} {{ habit.unit_of_measure }}
+        <a href="{% url 'habit_tracker:edit_daily_record' record.pk %}">Изменить</a>
+      </li>
+    {% empty %}
+      <li>Записей пока нет.</li>
+    {% endfor %}
+  </ul>
+{% endblock %}

@@ -25,6 +25,7 @@ INSTALLED_APPS = [
 
     'main',
     'users',
+    'habit_tracker',
 ]
 
 MIDDLEWARE = [

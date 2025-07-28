@@ -1,12 +1,40 @@
 {% extends 'base.html' %}
+{% block title %}Детали задачи{% endblock %}
 {% block content %}
-  <h2>{{ task.title }}</h2>
-  <p><strong>Описание:</strong> {{ task.description }}</p>
-  <p><strong>Статус:</strong> {{ task.get_status_display }}</p>
-  <p><strong>Приоритет:</strong> {{ task.get_priority_display }}</p>
-  <p><strong>Дедлайн:</strong> {{ task.deadline }}</p>
 
-  <a href="{% url 'main:task_update' task.pk %}" class="btn btn-primary">Редактировать</a>
-  <a href="{% url 'main:task_delete' task.pk %}" class="btn btn-danger">Удалить</a>
-  <a href="{% url 'main:task_list' %}" class="btn btn-secondary">Назад</a>
+<h2>Детали задачи</h2>
+
+<div class="task-detail-container {% if task.is_overdue %}overdue{% endif %}">
+  <div class="task-title">{{ task.title }}</div>
+  <div class="task-field">
+    <label>Описание</label>
+    <p>{{ task.description|default:"Нет описания" }}</p>
+  </div>
+  <div class="task-field">
+    <label>Дедлайн</label>
+    <span>{% if task.deadline %}{{ task.deadline|date:"d.m.Y" }}{% else %}Не указан{% endif %}</span>
+  </div>
+  <div class="task-field">
+    <label>Статус</label>
+    <span class="badge badge-status-{{ task.status }}">{{ task.get_status_display }}</span>
+    {% if task.is_overdue %}
+      <span class="badge badge-overdue">Просрочено</span>
+    {% endif %}
+  </div>
+  <div class="task-field">
+    <label>Приоритет</label>
+    <span class="badge badge-priority-{{ task.priority }}">{{ task.get_priority_display }}</span>
+  </div>
+  <div class="task-actions">
+    <a href="{% url 'main:task_update' task.pk %}" class="btn btn-edit">Редактировать</a>
+    {% if task.status != 'done' %}
+      <form method="post" action="{% url 'main:task_mark_done' task.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-done">Выполнить</button>
+      </form>
+    {% endif %}
+    <a href="{% url 'main:task_delete' task.pk %}" class="btn btn-delete">Удалить</a>
+    <a href="{% url 'main:task_list' %}" class="btn btn-back">Назад</a>
+  </div>
+</div>
 {% endblock %}

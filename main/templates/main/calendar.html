@@ -1,124 +1,225 @@
 {% extends 'base.html' %}
+{% block title %}Календарь задач{% endblock %}
 {% block content %}
-  <h2>Календарь задач</h2>
-  <div id="calendar"></div>
 
-  <!-- Модалка для создания задачи -->
-  <div class="modal fade" id="taskModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-      <form id="taskForm" class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Создать задачу</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
-        </div>
-        <div class="modal-body">
-          <input type="hidden" name="date" id="taskDate">
-          <div class="mb-3">
-            <label for="title" class="form-label">Заголовок</label>
-            <input type="text" class="form-control" name="title" required>
-          </div>
-          <div class="mb-3">
-            <label for="description" class="form-label">Описание</label>
-            <textarea class="form-control" name="description"></textarea>
-          </div>
-          <div class="mb-3">
-            <label for="priority" class="form-label">Приоритет</label>
-            <select name="priority" class="form-select">
-              <option value="low">Низкий</option>
-              <option value="medium">Средний</option>
-              <option value="high">Высокий</option>
-            </select>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="submit" class="btn btn-primary">Создать</button>
-        </div>
-      </form>
-    </div>
+<h2>Календарь задач</h2>
+
+<div class="calendar-container">
+  <div class="calendar-row">
+    <div class="month-container" id="month-0"></div>
+    <div class="month-container" id="month-1"></div>
+    <div class="month-container" id="month-2"></div>
   </div>
+  <div class="calendar-row">
+    <div class="month-container" id="month-3"></div>
+    <div class="month-container" id="month-4"></div>
+    <div class="month-container" id="month-5"></div>
+  </div>
+  <div class="calendar-row">
+    <div class="month-container" id="month-6"></div>
+    <div class="month-container" id="month-7"></div>
+    <div class="month-container" id="month-8"></div>
+  </div>
+</div>
 
-  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+<div class="modal" id="taskModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h5>Создать задачу</h5>
+      <button class="modal-close" aria-label="Закрыть">✕</button>
+    </div>
+    <form id="taskForm">
+      <input type="hidden" name="date" id="taskDate">
+      <div class="form-group">
+        <label for="title">Заголовок</label>
+        <input type="text" name="title" id="title" required>
+      </div>
+      <div class="form-group">
+        <label for="description">Описание</label>
+        <textarea name="description" id="description"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="priority">Приоритет</label>
+        <select name="priority" id="priority">
+          <option value="low">Низкий</option>
+          <option value="medium">Средний</option>
+          <option value="high">Высокий</option>
+        </select>
+      </div>
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-create">Создать</button>
+      </div>
+    </form>
+  </div>
+</div>
 
 <script>
-  document.addEventListener('DOMContentLoaded', function () {
-    const calendarEl = document.getElementById('calendar');
+  // Calendar logic
+  const monthContainers = [
+    document.getElementById('month-0'),
+    document.getElementById('month-1'),
+    document.getElementById('month-2'),
+    document.getElementById('month-3'),
+    document.getElementById('month-4'),
+    document.getElementById('month-5'),
+    document.getElementById('month-6'),
+    document.getElementById('month-7'),
+    document.getElementById('month-8')
+  ];
+  let currentDate = new Date();
 
-    const calendar = new FullCalendar.Calendar(calendarEl, {
-      initialView: 'dayGridMonth',
-      locale: 'ru',
-      selectable: true,
+  function fetchTasks(start, end, successCallback, failureCallback) {
+    const url = `/api/tasks/?start=${start}&end=${end}`;
+    fetch(url)
+      .then(response => response.json())
+      .then(data => {
+        const events = data.map(task => ({
+          title: task.title,
+          date: task.start,
+          url: task.url,
+          status: task.status,
+          priority: task.priority,
+          overdue: task.overdue
+        }));
+        successCallback(events);
+      })
+      .catch(error => {
+        console.error('Ошибка загрузки задач:', error);
+        failureCallback(error);
+      });
+  }
 
-      dateClick: function(info) {
-        document.getElementById('taskDate').value = info.dateStr;
-        const modal = new bootstrap.Modal(document.getElementById('taskModal'));
-        modal.show();
-      },
+  function renderMonth(container, offset) {
+    const date = new Date(currentDate.getFullYear(), currentDate.getMonth() + offset, 1);
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1).getDay();
+    const lastDate = new Date(year, month + 1, 0).getDate();
+    const monthNames = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
 
-      events: function(fetchInfo, successCallback, failureCallback) {
-        // Форматируем даты в YYYY-MM-DD (без времени)
-        const startDate = fetchInfo.startStr.split('T')[0];
-        const endDate = fetchInfo.endStr.split('T')[0];
-        const url = `/api/tasks/?start=${startDate}&end=${endDate}`;
+    container.innerHTML = `
+      <div class="calendar-header">
+        <h3>${monthNames[month]} ${year}</h3>
+        ${offset === 0 ? `
+          <div class="calendar-nav">
+            <button class="prev-month">←</button>
+            <button class="next-month">→</button>
+          </div>
+        ` : ''}
+      </div>
+      <div class="calendar-grid"></div>
+    `;
 
-        fetch(url)
-          .then(response => response.json())
-          .then(data => {
-            const events = data.map(task => {
-              let color = '#17a2b8'; // default (blue-ish)
+    const grid = container.querySelector('.calendar-grid');
 
-              if (task.status === 'done') {
-                color = '#28a745'; // green
-              } else if (task.overdue) {
-                color = '#dc3545'; // red
-              } else if (task.priority === 'high') {
-                color = '#fd7e14'; // orange
-              } else if (task.priority === 'medium') {
-                color = '#ffc107'; // yellow
-              }
-
-              return {
-                title: task.title,
-                start: task.start,  // <-- важно! совпадает с ключом в API
-                url: task.url,
-                color: color
-              };
-            });
-            successCallback(events);
-          })
-          .catch(error => {
-            console.error('Ошибка загрузки задач:', error);
-            failureCallback(error);
-          });
-      }
+    // Headers
+    const days = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+    days.forEach(day => {
+      const dayEl = document.createElement('div');
+      dayEl.classList.add('calendar-day', 'header');
+      dayEl.textContent = day;
+      grid.appendChild(dayEl);
     });
 
-    calendar.render();
+    // Empty days
+    for (let i = 0; i < (firstDay || 7) - 1; i++) {
+      grid.appendChild(document.createElement('div'));
+    }
 
-    // Обработка формы
-    document.getElementById('taskForm').addEventListener('submit', function (e) {
-      e.preventDefault();
-      const form = e.target;
-      const data = new FormData(form);
+    // Days
+    for (let i = 1; i <= lastDate; i++) {
+      const dayEl = document.createElement('div');
+      dayEl.classList.add('calendar-day');
+      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
 
-      fetch('/api/tasks/create/', {
-        method: 'POST',
-        headers: {
-          'X-CSRFToken': '{{ csrf_token }}',
-        },
-        body: data,
-      })
+      const numberEl = document.createElement('span');
+      numberEl.textContent = i;
+      dayEl.appendChild(numberEl);
+
+      dayEl.addEventListener('click', () => {
+        document.getElementById('taskDate').value = dateStr;
+        document.getElementById('taskModal').classList.add('show');
+      });
+
+      grid.appendChild(dayEl);
+    }
+  }
+
+  function renderCalendars(tasks = []) {
+    monthContainers.forEach((container, index) => {
+      renderMonth(container, index);
+      const grid = container.querySelector('.calendar-grid');
+      const date = new Date(currentDate.getFullYear(), currentDate.getMonth() + index, 1);
+      const year = date.getFullYear();
+      const month = date.getMonth();
+
+      tasks.forEach(task => {
+        const taskDate = new Date(task.date);
+        if (taskDate.getFullYear() === year && taskDate.getMonth() === month) {
+          const day = taskDate.getDate();
+          const dayEl = grid.children[7 + (firstDay || 7) - 1 + day - 1];
+          if (dayEl && !dayEl.classList.contains('task')) {
+            dayEl.classList.add('task');
+            const indicatorEl = document.createElement('div');
+            indicatorEl.classList.add('task-indicator');
+            indicatorEl.appendChild(document.createElement('span'));
+            dayEl.appendChild(indicatorEl);
+            dayEl.addEventListener('click', () => window.location.href = task.url);
+          }
+        }
+      });
+    });
+  }
+
+  // Initial fetch and render
+  const startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).toISOString().split('T')[0];
+  const endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 9, 0).toISOString().split('T')[0];
+  fetchTasks(startDate, endDate, renderCalendars, () => { renderCalendars([]); });
+
+  // Navigation
+  document.addEventListener('click', (e) => {
+    if (e.target.classList.contains('prev-month')) {
+      currentDate.setMonth(currentDate.getMonth() - 1);
+      const start = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).toISOString().split('T')[0];
+      const end = new Date(currentDate.getFullYear(), currentDate.getMonth() + 9, 0).toISOString().split('T')[0];
+      fetchTasks(start, end, renderCalendars, () => { renderCalendars([]); });
+    } else if (e.target.classList.contains('next-month')) {
+      currentDate.setMonth(currentDate.getMonth() + 1);
+      const start = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).toISOString().split('T')[0];
+      const end = new Date(currentDate.getFullYear(), currentDate.getMonth() + 9, 0).toISOString().split('T')[0];
+      fetchTasks(start, end, renderCalendars, () => { renderCalendars([]); });
+    }
+  });
+
+  // Modal handling
+  document.querySelector('.modal-close').addEventListener('click', () => {
+    document.getElementById('taskModal').classList.remove('show');
+  });
+
+  document.getElementById('taskForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    const form = e.target;
+    const data = new FormData(form);
+
+    fetch('/api/tasks/create/', {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': '{{ csrf_token }}',
+      },
+      body: data,
+    })
       .then(res => res.json())
       .then(result => {
         if (result.success) {
-          calendar.refetchEvents();
-          bootstrap.Modal.getInstance(document.getElementById('taskModal')).hide();
+          const start = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).toISOString().split('T')[0];
+          const end = new Date(currentDate.getFullYear(), currentDate.getMonth() + 9, 0).toISOString().split('T')[0];
+          fetchTasks(start, end, renderCalendars, () => { renderCalendars([]); });
+          document.getElementById('taskModal').classList.remove('show');
           form.reset();
         } else {
           alert('Ошибка: ' + result.message);
         }
       });
-    });
   });
 </script>
 {% endblock %}

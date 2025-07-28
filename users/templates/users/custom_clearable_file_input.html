@@ -1,1 +1,12 @@
-<input type="{{ widget.type }}" name="{{ widget.name }}" {% include "django/forms/widgets/attrs.html" %}>
+{% load i18n %}
+{% extends "base.html" %}
+<div class="file-input-container">
+  <input type="file" name="{{ widget.name }}"{% if widget.value %} value="{{ widget.value }}"{% endif %}{% include "django/forms/widgets/attrs.html" %}>
+  {% if widget.value %}
+    <div class="file-clear">
+      <input type="checkbox" name="{{ widget.clear_checkbox_name }}" id="{{ widget.clear_checkbox_id }}">
+      <label for="{{ widget.clear_checkbox_id }}">{% trans "Удалить текущий аватар" %}</label>
+    </div>
+  {% endif %}
+</div>
+

@@ -1,81 +1,150 @@
 {% extends 'base.html' %}
-{% load static %}
-{% block extrahead %}
-  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
-{% endblock %}
-
+{% block title %}Мои задачи{% endblock %}
 {% block content %}
-  <h2>Мои задачи</h2>
 
-  <!-- Календарь -->
-  <div id="calendar" class="mb-5"></div>
+<h2>Мои задачи</h2>
 
-  <!-- Кнопка создать -->
-  <a href="{% url 'main:task_create' %}" class="btn btn-success mb-3">Создать задачу</a>
+<div class="main-container">
+  <!-- Calendar (Left) -->
+  <div class="calendar-container">
+    <div class="month-container" id="month-0"></div>
+    <div class="month-container" id="month-1"></div>
+    <div class="month-container" id="month-2"></div>
+  </div>
 
-  <!-- Список задач -->
-  <ul class="list-group">
-    {% for task in tasks %}
-      <li class="list-group-item d-flex justify-content-between align-items-center
-                 {% if task.is_overdue %}list-group-item-danger{% endif %}">
-        <div>
-          <a href="{% url 'main:task_detail' task.pk %}">{{ task.title }}</a><br>
-          <small class="text-muted">
-            Срок:
-            {% if task.deadline %}
-            {{ task.deadline|date:"d.m.Y" }}
-            {% else %}
-            не указан
+  <!-- Tasks (Right) -->
+  <div class="task-section">
+    <a href="{% url 'main:task_create' %}" class="create-btn">Создать задачу</a>
+    <div class="task-container">
+      {% for task in tasks %}
+        <div class="task-card {% if task.is_overdue %}overdue{% endif %}">
+          <div class="task-info">
+            <a href="{% url 'main:task_detail' task.pk %}">{{ task.title }}</a>
+            <div class="task-meta">
+              Срок: {% if task.deadline %}{{ task.deadline|date:"d.m.Y" }}{% else %}не указан{% endif %}
+              {% if task.is_overdue %}
+                <span class="badge badge-overdue">Просрочено</span>
+              {% endif %}
+            </div>
+            <div>
+              <span class="badge badge-status-{{ task.status }}">{{ task.get_status_display }}</span>
+              <span class="badge badge-priority-{{ task.priority }}">{{ task.get_priority_display }}</span>
+            </div>
+          </div>
+          <div class="task-actions">
+            {% if task.status != 'done' %}
+              <form method="post" action="{% url 'main:task_mark_done' task.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="btn-sm btn-done">Выполнить</button>
+              </form>
             {% endif %}
-          </small>
-          {% if task.is_overdue %}
-            <span class="badge bg-danger ms-2">Просрочено</span>
-          {% endif %}
+          </div>
         </div>
-
-        <div class="d-flex gap-2 align-items-center flex-wrap">
-          <span class="badge bg-{{ task.get_status_color }}">{{ task.get_status_display }}</span>
-          <span class="badge bg-{{ task.get_priority_color }}">{{ task.get_priority_display }}</span>
-
-          {% if task.status != 'done' %}
-            <form method="post" action="{% url 'main:task_mark_done' task.pk %}">
-              {% csrf_token %}
-              <button type="submit" class="btn btn-sm btn-outline-success">Выполнить</button>
-            </form>
-          {% endif %}
+      {% empty %}
+        <div class="task-card">
+          <div class="task-info">Нет задач</div>
         </div>
-      </li>
-    {% empty %}
-      <li class="list-group-item">Нет задач</li>
-    {% endfor %}
-  </ul>
-{% endblock %}
+      {% endfor %}
+    </div>
+  </div>
+</div>
 
-{% block extrascript %}
 <script>
-  document.addEventListener('DOMContentLoaded', function () {
-    const calendarEl = document.getElementById('calendar');
+  // Calendar logic
+  const monthContainers = [
+    document.getElementById('month-0'),
+    document.getElementById('month-1'),
+    document.getElementById('month-2')
+  ];
+  let currentDate = new Date();
+  const tasks = [
+    {% for task in tasks %}
+      {% if task.deadline %}
+        { title: "{{ task.title|escapejs }}", date: "{{ task.deadline|date:'Y-m-d' }}", url: "{% url 'main:task_detail' task.pk %}", status: "{{ task.status }}", priority: "{{ task.priority }}", overdue: {{ task.is_overdue|lower }} },
+      {% endif %}
+    {% endfor %}
+  ];
 
-    const calendar = new FullCalendar.Calendar(calendarEl, {
-      initialView: 'dayGridMonth',
-      locale: 'ru',
-      height: 500,
-      events: [
-        {% for task in tasks %}
-          {% if task.due_date %}
-            {
-              title: "{{ task.title|escapejs }}",
-              start: "{{ task.due_date|date:'Y-m-d' }}"  →  start: "{{ task.deadline|date:'Y-m-d' }}",
-              url: "{% url 'main:task_detail' task.pk %}",
-              color: "{% if task.status == 'done' %}#28a745{% elif task.is_overdue %}#dc3545{% elif task.priority == 'high' %}#fd7e14{% elif task.priority == 'medium' %}#ffc107{% else %}#17a2b8{% endif %}"
-            },
-          {% endif %}
-        {% endfor %}
-      ],
+  function renderMonth(container, offset) {
+    const date = new Date(currentDate.getFullYear(), currentDate.getMonth() + offset, 1);
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1).getDay();
+    const lastDate = new Date(year, month + 1, 0).getDate();
+    const monthNames = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+
+    container.innerHTML = `
+      <div class="calendar-header">
+        <h3>${monthNames[month]} ${year}</h3>
+        ${offset === 0 ? `
+          <div class="calendar-nav">
+            <button class="prev-month">←</button>
+            <button class="next-month">→</button>
+          </div>
+        ` : ''}
+      </div>
+      <div class="calendar-grid"></div>
+    `;
+
+    const grid = container.querySelector('.calendar-grid');
+
+    // Headers
+    const days = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+    days.forEach(day => {
+      const dayEl = document.createElement('div');
+      dayEl.classList.add('calendar-day', 'header');
+      dayEl.textContent = day;
+      grid.appendChild(dayEl);
     });
 
-    calendar.render();
+    // Empty days
+    for (let i = 0; i < (firstDay || 7) - 1; i++) {
+      grid.appendChild(document.createElement('div'));
+    }
+
+    // Days
+    for (let i = 1; i <= lastDate; i++) {
+      const dayEl = document.createElement('div');
+      dayEl.classList.add('calendar-day');
+      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+      const dayTasks = tasks.filter(task => task.date === dateStr);
+
+      const numberEl = document.createElement('span');
+      numberEl.textContent = i;
+      dayEl.appendChild(numberEl);
+
+      if (dayTasks.length) {
+        dayEl.classList.add('task');
+        const indicatorEl = document.createElement('div');
+        indicatorEl.classList.add('task-indicator');
+        for (let j = 0; j < Math.min(dayTasks.length, 3); j++) {
+          const dot = document.createElement('span');
+          indicatorEl.appendChild(dot);
+        }
+        dayEl.appendChild(indicatorEl);
+        dayEl.addEventListener('click', () => window.location.href = dayTasks[0].url);
+      }
+
+      grid.appendChild(dayEl);
+    }
+  }
+
+  function renderCalendars() {
+    monthContainers.forEach((container, index) => {
+      renderMonth(container, index);
+    });
+  }
+
+  document.addEventListener('click', (e) => {
+    if (e.target.classList.contains('prev-month')) {
+      currentDate.setMonth(currentDate.getMonth() - 1);
+      renderCalendars();
+    } else if (e.target.classList.contains('next-month')) {
+      currentDate.setMonth(currentDate.getMonth() + 1);
+      renderCalendars();
+    }
   });
+
+  renderCalendars();
 </script>
 {% endblock %}

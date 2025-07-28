@@ -1,8 +1,9 @@
+{% load static %}
 {% extends 'base.html' %}
-{% block title %}{% if form.instance.pk %}Редактировать задачу{% else %}Создать задачу{% endif %}{% endblock %}
+{% block title %}Редактировать задачу{% endblock %}
 {% block content %}
 
-<h2>{% if form.instance.pk %}Редактировать задачу{% else %}Создать задачу{% endif %}</h2>
+<h2>Редактировать задачу</h2>
 
 <div class="form-container">
   <form method="post">
@@ -29,7 +30,7 @@
     </div>
     <div class="form-actions">
       <button type="submit" class="btn btn-save">Сохранить</button>
-      <a href="{% url 'main:task_list' %}" class="btn btn-cancel">Отмена</a>
+      <a href="{% url 'main:task_detail' form.instance.pk %}" class="btn btn-cancel">Отмена</a>
     </div>
   </form>
 </div>

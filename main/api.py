@@ -2,15 +2,11 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.utils.dateparse import parse_date
-from django.utils.dateparse import parse_datetime
-from django.utils.timezone import make_aware
 from django.views.decorators.http import require_GET
 from django.utils import timezone
 from .models import Task
 from django.urls import reverse
-from datetime import datetime, time
-from django.utils.timezone import make_aware
-import json
+from datetime import datetime
 import logging
 
 

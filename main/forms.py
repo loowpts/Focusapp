@@ -1,5 +1,4 @@
 from django import forms
-from django.utils.html import strip_tags
 from .models import Task
 
 class TaskForm(forms.ModelForm):

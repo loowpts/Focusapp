@@ -1,10 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from django.template.response import TemplateResponse
-from django.http import HttpResponse
-from django.utils import timezone
 from django.shortcuts import get_object_or_404
-from django.conf import settings
 from .forms import TaskForm, TaskUpdateForm
 from .models import Task
 from django.contrib import messages

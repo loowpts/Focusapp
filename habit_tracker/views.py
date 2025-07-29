@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Habit, BaseMode, DailyRecord
+from .models import Habit, DailyRecord
 from .forms import HabitForm, DailyRecordForm
 from django.contrib.auth.decorators import login_required
 

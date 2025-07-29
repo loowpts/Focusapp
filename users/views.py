@@ -38,7 +38,6 @@ def profile(request):
 
     total_tasks = tasks.count()
 
-    # ✅ Выполнено в срок: статус 'done', дедлайн есть, и дата выполнения <= дате дедлайна
     done_on_time = tasks.annotate(
         deadline_date=TruncDate('deadline'),
         done_date=TruncDate('updated_at')
@@ -48,18 +47,16 @@ def profile(request):
         done_date__lte=F('deadline_date')
     ).count()
 
-    # ✅ Просроченные: 
-    # 1) выполнены позже дедлайна, или 
-    # 2) всё ещё не выполнены и срок прошёл
+
     overdue_tasks = tasks.annotate(
         deadline_date=TruncDate('deadline'),
         done_date=TruncDate('updated_at')
     ).filter(
         (
-            Q(status='done', done_date__gt=F('deadline_date')) |  # выполнена с опозданием
-            Q(status__in=['new', 'in_progress'], deadline__lt=timezone_now())  # ещё не выполнена, но срок прошёл
+            Q(status='done', done_date__gt=F('deadline_date')) |  
+            Q(status__in=['new', 'in_progress'], deadline__lt=timezone_now())
         ),
-        deadline__isnull=False  # только если установлен дедлайн
+        deadline__isnull=False
     ).count()
 
     if request.method == 'POST':

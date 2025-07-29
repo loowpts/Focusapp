@@ -1,2 +1,13 @@
-<h2>Аккаунт активирован!</h2>
-<a href="{% url 'users:login' %}">Войти</a>
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="form-container">
+  <h2>Активация завершена</h2>
+  <p class="form-instructions">Ваш аккаунт успешно активирован! Теперь вы можете войти в систему.</p>
+  
+  <div class="form-actions">
+    <a href="{% url 'users:login' %}" class="btn btn-save">Войти</a>
+  </div>
+</div>
+{% endblock %}

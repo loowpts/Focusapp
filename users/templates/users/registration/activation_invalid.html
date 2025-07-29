@@ -1,2 +1,14 @@
-<h2>Ссылка недействительна</h2>
-<p>Попробуйте зарегистрироваться снова.</p>
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="form-container">
+  <h2>Ошибка активации</h2>
+  <p class="form-instructions">Ссылка для активации недействительна или истёк срок её действия. Пожалуйста, зарегистрируйтесь заново или свяжитесь с поддержкой.</p>
+  
+  <div class="form-actions">
+    <a href="{% url 'users:register' %}" class="btn btn-back">К регистрации</a>
+    <a href="{% url 'users:login' %}" class="btn btn-back">К входу</a>
+  </div>
+</div>
+{% endblock %}

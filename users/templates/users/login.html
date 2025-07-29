@@ -27,5 +27,7 @@
     </div>
   </form>
   <a href="{% url 'users:register' %}" class="register-link">Нет аккаунта? Зарегистрируйтесь</a>
+    <p><a href="{% url 'users:password_reset' %}" class="register-link">Забыли пароль?</a></p>
 </div>
+
 {% endblock %}

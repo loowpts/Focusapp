@@ -1,6 +1,5 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import login
 from .forms import UserForm, UserProfileForm, RegisterForm
 from django.contrib import messages
 from django.utils.timezone import now as timezone_now
@@ -10,15 +9,20 @@ from django.utils import timezone
 from django.db.models import Q
 from django.db.models import F
 from django.db.models.functions import TruncDate
+from .utils import send_activation_email
+from django.contrib.auth.tokens import default_token_generator
+from django.contrib.auth.models import User
 
 
 def register(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST)
         if form.is_valid():
-            user = form.save()
-            login(request, user)
-            return redirect('main:task_list')
+            user = form.save(commit=False)
+            user.is_active = False
+            user.save()
+            send_activation_email(user, request)
+            return render(request, 'users/registration/activation_sent.html')
     else:
         form = RegisterForm()
     return render(request, 'users/register.html', {'form': form})
@@ -82,4 +86,13 @@ def profile(request):
     }
     return render(request, 'users/profile.html', context)
 
+
+def activate_account(request, username, token):
+    user = get_object_or_404(User, username=username)
+
+    if default_token_generator.check_token(user, token):
+        user.is_active = True
+        user.save()
+        return render(request, 'users/registration/activation_success.html')
+    return render(request, 'users/registration/activation_invalid.html')
 

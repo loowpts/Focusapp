@@ -3,15 +3,18 @@ from .models import Habit, DailyRecord
 from .forms import HabitForm, DailyRecordForm
 from django.contrib.auth.decorators import login_required
 
+
 @login_required
 def daily_habits(request):
     habits = Habit.objects.filter(user=request.user)
     return render(request, 'habit_tracker/daily_habits.html', {'habits': habits})
 
+
 @login_required
 def habit_detail(request, pk):
     habit = get_object_or_404(Habit, pk=pk, user=request.user)
     return render(request, 'habit_tracker/habit_detail.html', {'habit': habit})
+
 
 @login_required
 def habit_new(request):
@@ -26,6 +29,7 @@ def habit_new(request):
         form = HabitForm()
     return render(request, 'habit_tracker/habit_form.html', {'form': form})
 
+
 @login_required
 def habit_edit(request, pk):
     habit = get_object_or_404(Habit, pk=pk, user=request.user)
@@ -37,6 +41,7 @@ def habit_edit(request, pk):
     else:
         form = HabitForm(instance=habit)
     return render(request, 'habit_tracker/habit_edit.html', {'form': form, 'habit': habit})
+
 
 @login_required
 def habit_delete(request, pk):
@@ -58,6 +63,7 @@ def daily_record(request, pk):
         form = DailyRecordForm()
     daily_records = habit.habit_dailyrecords.all()
     return render(request, 'habit_tracker/daily_record.html', {'form': form, 'habit': habit, 'daily_records': daily_records})
+
 
 @login_required
 def edit_daily_record(request, pk):

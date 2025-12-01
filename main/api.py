@@ -9,7 +9,6 @@ from django.urls import reverse
 from datetime import datetime
 import logging
 
-
 logger = logging.getLogger(__name__)
 
 @require_GET
@@ -46,8 +45,6 @@ def get_tasks_for_date(request):
 
     return JsonResponse(data, safe=False)
 
-
-
 @csrf_exempt
 @login_required
 def create_task_api(request):
@@ -73,5 +70,3 @@ def create_task_api(request):
         return JsonResponse({'success': True, 'message': 'Task created'})
 
     return JsonResponse({'success': False, 'message': 'Invalid method'}, status=405)
-
-

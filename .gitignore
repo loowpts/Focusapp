@@ -1,1 +1,18 @@
-media/
+# Python
+__pycache__/
+*.py[cod]
+
+# Окружение
+venv/
+.venv/
+.env
+
+# Django
+/media/
+/static/
+db.sqlite3
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
